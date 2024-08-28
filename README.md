@@ -150,7 +150,7 @@ json { "username": "your_username", "password": "your_password" }
 
 ## Project Structure
 
-src/
+```plaintextsrc/
 │
 ├── auth/
 │ ├── dto/
@@ -168,7 +168,8 @@ src/
 │
 ├── app.module.ts
 ├── main.ts
-└── ...
+└──
+```
 
 ## Contributing
 
