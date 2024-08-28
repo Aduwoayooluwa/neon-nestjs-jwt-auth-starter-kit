@@ -1,85 +1,179 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# **Authentication with NestJS, Neon, and JWT**
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This project demonstrates how to implement a secure authentication system using **NestJS**, **Neon (serverless PostgreSQL)**, and **JWT (JSON Web Tokens)**. The goal is to provide a robust and scalable solution for user authentication, including user registration, login, and protected routes using JWT for stateless authentication.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## **Table of Contents**
 
-## Description
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+- [Database Setup](#database-setup)
+- [Running the Application](#running-the-application)
+- [API Endpoints](#api-endpoints)
+- [Validation](#validation)
+- [Error Handling](#error-handling)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## **Features**
 
-## Project setup
+- User Registration and Login with password hashing using bcrypt.
+- Secure JWT authentication with token generation and validation.
+- Role-based route protection using NestJS guards.
+- Direct interaction with Neon database using SQL queries.
+- Input validation using `class-validator` and `class-transformer`.
+- Detailed error handling and JSON responses for all error cases.
 
-```bash
-$ npm install
+## **Technologies Used**
+
+- **NestJS**: A progressive Node.js framework for building efficient, reliable, and scalable server-side applications.
+- **Neon**: A serverless PostgreSQL database offering high scalability and easy branching for development.
+- **JWT**: Used for secure, stateless authentication.
+- **Class-Validator & Class-Transformer**: For validating and transforming incoming requests.
+- **Bcrypt**: For secure password hashing.
+
+## **Getting Started**
+
+### **Prerequisites**
+
+Ensure you have the following installed on your local development environment:
+
+- Node.js (v14 or later)
+- npm (v6 or later)
+- Neon account for database access
+
+### **Installation**
+
+1. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/nestjs-neon-authentication.git
+   cd nestjs-neon-authentication
+   ```
+
+2. **Install Dependencies**
+
+Install the necessary dependencies:
+
+```
+npm install
 ```
 
-## Compile and run the project
+3. **Environment Variables**
 
-```bash
-# development
-$ npm run start
+Create a `.env` file in the root directory and configure the following environment variables:
 
-# watch mode
-$ npm run start:dev
+- **DATABASE_URL**: Your Neon database connection string.
+- **JWT_SECRET**: A secret key for signing JWTs. Ensure this is kept secure.
 
-# production mode
-$ npm run start:prod
+## **Database Setup**
+
+### 1. Create the User Table
+
+Run the following command to create the `users` table in your Neon database:
+
+```
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 ```
 
-## Run tests
+### 2. Verify Table Creation
 
-```bash
-# unit tests
-$ npm run test
+Ensure the table exists and is accessible in your Neon database.
 
-# e2e tests
-$ npm run test:e2e
+## Running the Application
 
-# test coverage
-$ npm run test:cov
+### 1. Start the Application
+
+Start the application using:
+
+```
+npm run start
 ```
 
-## Resources
+### 2. Access the Application
 
-Check out a few resources that may come in handy when working with NestJS:
+The application will be running at `http://localhost:3000`.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## API Endpoints
 
-## Support
+### User Registration
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- **URL**: `/auth/register`
+- **Method**: `POST`
+- **Body**:
 
-## Stay in touch
+```
+json { "username": "your_username", "password": "your_password" }
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- **Description**: Registers a new user with a username and password.
+
+### User Login
+
+- **URL**: `/auth/login`
+- **Method**: `POST`
+- **Body**:
+
+```
+json { "username": "your_username", "password": "your_password" }
+```
+
+- **Description**: Authenticates a user and returns a JWT access token.
+
+### Protected Route
+
+- **URL**: `/auth/profile`
+- **Method**: `GET`
+- **Headers**:
+  - `Authorization: Bearer <token>`
+- **Description**: Access protected content. Requires a valid JWT.
+
+## Validation
+
+- **DTOs**: Data Transfer Objects are used to define the structure and validation rules for incoming requests.
+- **Validation Pipe**: Ensures incoming data adheres to defined rules using `class-validator` decorators such as `@IsString()`, `@IsNotEmpty()`, and others.
+
+## Error Handling
+
+- **Structured Error Responses**: Uses NestJS’s `HttpException` to standardize error responses, including proper HTTP status codes and error messages.
+- **Logging**: Logs unexpected errors for easier debugging and monitoring.
+
+## Project Structure
+
+src/
+│
+├── auth/
+│ ├── dto/
+│ │ ├── create-user.dto.ts
+│ │ └── login.dto.ts
+│ ├── auth.module.ts
+│ ├── auth.service.ts
+│ ├── auth.controller.ts
+│ ├── jwt.strategy.ts
+│
+├── database/
+│ ├── database.controller.ts
+│ ├── database.service.ts
+│ ├── database.module.ts
+│
+├── app.module.ts
+├── main.ts
+└── ...
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request for any improvements or new features.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
