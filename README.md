@@ -51,8 +51,8 @@ Ensure you have the following installed on your local development environment:
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourusername/nestjs-neon-authentication.git
-   cd nestjs-neon-authentication
+   git clone https://github.com/Aduwoayooluwa/neon-nestjs-jwt-auth-starter-kit.git
+   cd neon-nestjs-jwt-auth-starter-kit
    ```
 
 2. **Install Dependencies**
@@ -178,3 +178,11 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### **Acknowledgements**
+
+- **Neon** for providing an excellent Postgres solution.
+
+### **Contact**
+
+For more information, please contact me on [X @ Coding Pastor](https://x.com/codingpastor) or [LinkedIn](https://linkedin.com/in/aduwo-ayooluwa).
