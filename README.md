@@ -1,32 +1,14 @@
-# **Authentication with NestJS, Neon, and JWT**
+# **Basic Secure Chat Application with NestJS, WebSocket, and Neon Postgres**
 
-This project demonstrates how to implement a secure authentication system using **NestJS**, **Neon (serverless PostgreSQL)**, and **JWT (JSON Web Tokens)**. The goal is to provide a robust and scalable solution for user authentication, including user registration, login, and protected routes using JWT for stateless authentication.
+This is a real-time chat application built using **NestJS** as the backend framework, **WebSocket** for real-time communication, and **Neon** (PostgreSQL) as the database. The application provides a simple, scalable, and efficient chat platform where users can connect, send messages, and see other users' messages in real time. It also includes **JWT-based authentication** to ensure secure user access and communication.
 
-## **Table of Contents**
+### **Features**
 
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Variables](#environment-variables)
-- [Database Setup](#database-setup)
-- [Running the Application](#running-the-application)
-- [API Endpoints](#api-endpoints)
-- [Validation](#validation)
-- [Error Handling](#error-handling)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
-## **Features**
-
-- User Registration and Login with password hashing using bcrypt.
-- Secure JWT authentication with token generation and validation.
-- Role-based route protection using NestJS guards.
-- Direct interaction with Neon database using SQL queries.
-- Input validation using `class-validator` and `class-transformer`.
-- Detailed error handling and JSON responses for all error cases.
+- **Real-time Messaging:** Leveraging WebSocket for instant messaging without page reloads.
+- **User Authentication:** JWT-based authentication for secure user access, registration, and login functionality.
+- **Persistent Storage:** Messages and user data are stored in a Neon (Postgres) database.
+- **Secure Connections:** Utilizes JWT for secure client-server communication.
+- **Expandable Architecture:** Modular structure, easy to extend with more features.
 
 ## **Technologies Used**
 
@@ -35,24 +17,27 @@ This project demonstrates how to implement a secure authentication system using 
 - **JWT**: Used for secure, stateless authentication.
 - **Class-Validator & Class-Transformer**: For validating and transforming incoming requests.
 - **Bcrypt**: For secure password hashing.
+- **WebSocket (Socket-io)**: Enables real-time, bidirectional, and event-based communication.
 
 ## **Getting Started**
 
 ### **Prerequisites**
 
-Ensure you have the following installed on your local development environment:
+Before you begin, ensure you have met the following requirements:
 
-- Node.js (v14 or later)
-- npm (v6 or later)
-- Neon account for database access
+- **Node.js** installed on your machine.
+- **NestJS CLI** installed globally (`npm install -g @nestjs/cli`).
+- **PostgreSQL database connection URL** from [Neon](https://neon.tech/).
 
 ### **Installation**
 
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourusername/nestjs-neon-authentication.git
-   cd nestjs-neon-authentication
+   git clone https://github.com/Aduwoayooluwa/neon-nestjs-jwt-auth-starter-kit.git
+   cd neon-nestjs-jwt-auth-starter-kit
+   git fetch origin chat-server
+   git checkout chat-server
    ```
 
 2. **Install Dependencies**
@@ -77,11 +62,20 @@ Create a `.env` file in the root directory and configure the following environme
 Run the following command to create the `users` table in your Neon database:
 
 ```
+
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  user_id VARCHAR(25) UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id SERIAL PRIMARY KEY,
+  content TEXT NOT NULL,
+  sender_id VARCHAR(25) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 ```
@@ -97,7 +91,7 @@ Ensure the table exists and is accessible in your Neon database.
 Start the application using:
 
 ```
-npm run start
+npm run start:dev
 ```
 
 ### 2. Access the Application
@@ -148,6 +142,22 @@ json { "username": "your_username", "password": "your_password" }
 - **Structured Error Responses**: Uses NestJS’s `HttpException` to standardize error responses, including proper HTTP status codes and error messages.
 - **Logging**: Logs unexpected errors for easier debugging and monitoring.
 
+### **Connect to WebSocket Server:**
+
+- Use a WebSocket client (like Socket.io client or a browser-based client) to connect to the WebSocket server at `ws://localhost:3002`.
+- Ensure you provide the JWT token in the connection request for authentication.
+
+### **Send and Receive Messages:**
+
+- Once connected, you can emit a `newMessage` event with the message content.
+- The server will broadcast the message to all connected clients and store it in the Neon Postgres database.
+
+### **Authentication**
+
+- **Register:** Users can register using their `username` and `password`, which are stored securely in the database with hashed passwords.
+- **Login:** Users must log in to obtain a JWT token, which is used to authenticate WebSocket connections and other API requests.
+- **Secure Communication:** The JWT token must be included in the headers or as part of the WebSocket connection request to verify the user's identity.
+
 ## Project Structure
 
 ```plaintextsrc/
@@ -166,6 +176,10 @@ json { "username": "your_username", "password": "your_password" }
 │ ├── database.service.ts
 │ ├── database.module.ts
 │
+├── chat/
+│ ├── chat.gateway.ts
+│ ├── chat.module.ts
+
 ├── app.module.ts
 ├── main.ts
 └──
@@ -178,3 +192,11 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### **Acknowledgements**
+
+- **Neon** for providing an excellent Postgres solution.
+
+### **Contact**
+
+For more information, please contact me on [X @ Coding Pastor](https://x.com/codingpastor) or [LinkedIn](https://linkedin.com/in/aduwo-ayooluwa).
