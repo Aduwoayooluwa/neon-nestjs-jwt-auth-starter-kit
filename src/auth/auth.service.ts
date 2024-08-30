@@ -1,6 +1,7 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -16,10 +17,11 @@ export class AuthService {
   async registerUser(username: string, password: string): Promise<void> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
-      INSERT INTO users (username, password)
-      VALUES ($1, $2);
+      INSERT INTO users (username, password, user_id)
+      VALUES ($1, $2, $3);
     `;
-    await this.sql(query, [username, hashedPassword]);
+    const user_id = uuidv4().slice(0, 25);
+    await this.sql(query, [username, hashedPassword, user_id]);
   }
 
   //   ? validate the user
@@ -40,7 +42,11 @@ export class AuthService {
       const user = await this.validateUser(username, password);
 
       if (user) {
-        const payload = { username: user.username, sub: user.id };
+        const payload = {
+          username: user.username,
+          sub: user.user_id,
+          user_id: user.user_id,
+        };
         return {
           access_token: this.jwtService.sign(payload),
         };
@@ -73,6 +79,7 @@ export class AuthService {
       id SERIAL PRIMARY KEY,
       username VARCHAR(50) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
+      user_id VARCHAR(25) UNIQUE NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
