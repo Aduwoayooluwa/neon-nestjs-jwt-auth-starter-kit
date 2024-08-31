@@ -5,10 +5,17 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   MessageBody,
+  WsException,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException, Injectable, Inject } from '@nestjs/common';
+import {
+  UnauthorizedException,
+  BadRequestException,
+  Injectable,
+  Inject,
+} from '@nestjs/common';
 
 @WebSocketGateway(3002, { cors: { origin: '*' } })
 @Injectable()
@@ -22,6 +29,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.createMessagesTable();
   }
 
+  // console.log('')
+
+  // Create the messages table if it doesn't exist
   async createMessagesTable(): Promise<void> {
     const query = `
       CREATE TABLE IF NOT EXISTS messages (
@@ -31,10 +41,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
-    await this.sql(query);
+    await this.sql(query).catch((err) =>
+      console.error('Error creating messages table: ', err.message),
+    );
   }
 
-  async handleConnection(client: Socket) {
+  // Handle user connections and authenticate them
+  async handleConnection(client: Socket): Promise<void> {
     try {
       const token =
         client.handshake.auth.token ||
@@ -42,15 +55,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       if (!token) {
         client.disconnect();
-        throw new UnauthorizedException('Token not found');
+        //throw new WsException('Token not found');
       }
 
       const payload = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
-      client.data.user = payload;
-      console.log(payload, 'payload');
 
+      if (!payload) {
+        client.disconnect();
+        throw new WsException('Invalid token');
+      }
+
+      client.data.user = payload;
+      console.log('User payload:', payload);
+
+      // Fetch or create user in the database
       const result = await this.sql('SELECT * FROM users WHERE user_id = $1', [
         client.data.user.user_id,
       ]);
@@ -62,41 +82,64 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       }
 
-      console.log('New user connected', client?.data.user.user_id);
+      console.log('New user connected:', client?.data.user.user_id);
       client.broadcast.emit('user-joined', {
         message: `New user joined the chat: ${client?.data.user.user_id}`,
       });
     } catch (err) {
       console.error('Connection rejected: ', err.message);
       client.disconnect();
+      throw new WsException(err.message);
     }
   }
 
-  handleDisconnect(client: Socket) {
-    console.log('User disconnected', client?.data.user?.user_id);
+  // Handle user disconnection
+  handleDisconnect(client: Socket): void {
+    console.log('User disconnected:', client?.data.user?.user_id);
 
     this.server.emit('user-left', {
       message: `User left the chat: ${client?.data.user?.user_id}`,
     });
   }
 
+  // Handle incoming messages and broadcast them to all connected clients
   @SubscribeMessage('newMessage')
-  async handleNewMessage(@MessageBody() message: any, client: Socket) {
-    console.log(message);
-    const userId = client?.data.user?.user_id;
-    const username = client?.data.user?.username;
+  async handleNewMessage(
+    @MessageBody() message: any,
+    @ConnectedSocket() client: Socket,
+  ): Promise<any> {
+    try {
+      if (!message || typeof message !== 'string') {
+        throw new BadRequestException('Invalid message content');
+      }
 
-    const fullMessage = {
-      content: message,
-      senderId: userId,
-      username: username,
-    };
+      const userId = client?.data.user?.user_id;
+      const username = client?.data.user?.username;
 
-    await this.sql(
-      'INSERT INTO messages (content, sender_id, created_at) VALUES ($1, $2, NOW())',
-      [message || message.content, userId],
-    );
+      if (!userId || !username) {
+        throw new UnauthorizedException('User not authenticated');
+      }
 
-    this.server.emit('message', fullMessage);
+      const fullMessage = {
+        content: message,
+        senderId: userId,
+        username: username,
+      };
+
+      // Save the message to the database
+      await this.sql(
+        'INSERT INTO messages (content, sender_id, created_at) VALUES ($1, $2, NOW())',
+        [message, userId],
+      ).catch((err) => {
+        console.error('Error saving message: ', err.message);
+        throw new WsException('Error saving message to the database');
+      });
+
+      this.server.emit('message', fullMessage);
+      return { status: 'sent', message: fullMessage };
+    } catch (err) {
+      console.error('Error handling new message: ', err.message);
+      throw new WsException(err.message);
+    }
   }
 }

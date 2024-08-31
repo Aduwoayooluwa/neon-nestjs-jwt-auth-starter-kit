@@ -96,7 +96,7 @@ npm run start:dev
 
 ### 2. Access the Application
 
-The application will be running at `http://localhost:3000`.
+The application will be running at `http://localhost:3001`.
 
 ## API Endpoints
 
